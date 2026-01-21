@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jeeshma C | Professional Portfolio</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+    <!-- Babel for JSX Support in Browser -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- ESM Import Map - Using stable React 18.2.0 for all parts -->
+    <script type="importmap">
+{
+  "imports": {
+    "react": "https://esm.sh/react@18.2.0",
+    "react-dom": "https://esm.sh/react-dom@18.2.0",
+    "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
+    "@google/genai": "https://esm.sh/@google/genai@1.38.0",
+    "react/": "https://esm.sh/react@^19.2.3/"
+  }
+}
+</script>
+
+    <style>
+        :root { scroll-behavior: smooth; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+        }
+        .mono { font-family: 'JetBrains Mono', monospace; }
+        .gradient-text {
+            background: linear-gradient(to right, #2dd4bf, #3b82f6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .glass-card {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        /* Offset for fixed navbar */
+        [id] {
+            scroll-margin-top: 100px;
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.8s ease-out forwards;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #2dd4bf; }
+    </style>
+<link rel="stylesheet" href="/index.css">
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel" data-type="module">
+        import React, { useState, useEffect, useRef } from 'react';
+        import { createRoot } from 'react-dom/client';
+        import { GoogleGenAI } from "@google/genai";
+
+        const DATA = {
+            personal: {
+                name: "JEESHMA C",
+                phone: "+91 94958 79859",
+                email: "jeeshmac27@gmail.com",
+                objective: "To obtain a position where I can apply my programming, problem-solving and analytical skills, while contributing to real-time software solutions and continuously learning modern technologies.",
+                dob: "25/07/2005",
+                gender: "Female",
+                languages: ["English", "Malayalam", "Tamil", "Hindi"],
+                address: "Kannimari(ho), Kannimari(po), Palakkad, Kerala-678534"
+            },
+            education: [
+                { id: "edu1", degree: "BSc Computer Science (Pursuing)", institution: "Nallamuthu Gounder Mahalingam College", location: "Bharathiyar University, Coimbatore", score: "68.8%", status: "Ongoing" },
+                { id: "edu2", degree: "Higher Secondary", institution: "KKM Higher Secondary School", location: "Vandithavalam, Palakkad", score: "68.9%", status: "Completed" },
+                { id: "edu3", degree: "SSLC", institution: "KKM Higher Secondary School", location: "Vandithavalam, Palakkad", score: "Passed", status: "Completed" }
+            ],
+            skills: [
+                { name: "Python", level: 85, cat: "Programming" },
+                { name: "C", level: 80, cat: "Programming" },
+                { name: "C++", level: 75, cat: "Programming" },
+                { name: "Java", level: 65, cat: "Programming" },
+                { name: "HTML", level: 90, cat: "Web" },
+                { name: "SQL", level: 75, cat: "Database" },
+                { name: "Power BI", level: 70, cat: "Tools" },
+                { name: "MS Office", level: 95, cat: "Tools" },
+                { name: "Communication", level: 85, cat: "Soft Skills" },
+                { name: "Teamwork", level: 95, cat: "Soft Skills" }
+            ],
+            certs: [
+                { title: "Python for Data Science", issuer: "NPTEL", score: "58%", date: "July-Oct 2025" },
+                { title: "Data Visualization using Power BI", issuer: "Value Added Course" },
+                { title: "Cloud-Based Office Automation", issuer: "Value Added Course" },
+                { title: "Python and HTML", issuer: "IIT Bombay Spoken Tutorial" }
+            ],
+            extra: [
+                { title: "NCC Cadet", org: "27(k) BN NCC PALAKKAD", desc: "Participated in various camps and parade training. Gained discipline and team coordination skills at KKM Higher Secondary School." },
+                { title: "Equal Opportunity Club", org: "Active Member", desc: "Contributing to inclusivity and community programs within the college." }
+            ]
+        };
+
+        const askGemini = async (question) => {
+            const apiKey = window.process?.env?.API_KEY || '';
+            if (!apiKey) return "AI Assistant is currently in preview mode. Reach Jeeshma at jeeshmac27@gmail.com!";
+            
+            const ai = new GoogleGenAI({ apiKey });
+            const systemInstruction = `You are the Portfolio AI for Jeeshma C. Use this data: ${JSON.stringify(DATA)}. Be professional, concise, and highlight her NCC discipline.`;
+
+            try {
+                const response = await ai.models.generateContent({
+                    model: 'gemini-3-flash-preview',
+                    contents: question,
+                    config: { systemInstruction, temperature: 0.7 }
+                });
+                return response.text;
+            } catch (e) {
+                return "Jeeshma is ready for opportunities! Contact her at +91 94958 79859.";
+            }
+        };
+
+        const Assistant = () => {
+            const [open, setOpen] = useState(false);
+            const [input, setInput] = useState('');
+            const [msgs, setMsgs] = useState([{ role: 'ai', text: "Hello! I'm Jeeshma's virtual assistant. How can I help you today?" }]);
+            const [loading, setLoading] = useState(false);
+            const scrollRef = useRef();
+
+            useEffect(() => { if(scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight; }, [msgs]);
+
+            const send = async () => {
+                if(!input.trim() || loading) return;
+                const text = input; setInput('');
+                setMsgs(p => [...p, { role: 'user', text }]);
+                setLoading(true);
+                const res = await askGemini(text);
+                setMsgs(p => [...p, { role: 'ai', text: res }]);
+                setLoading(false);
+            };
+
+            return (
+                <div className="fixed bottom-6 right-6 z-50">
+                    {open ? (
+                        <div className="w-80 md:w-96 glass-card rounded-2xl shadow-2xl flex flex-col border border-teal-500/30 overflow-hidden fade-in">
+                            <div className="bg-teal-600 p-4 flex justify-between items-center font-bold">
+                                <span className="flex items-center gap-2"><span className="w-2 h-2 bg-white rounded-full animate-pulse"></span> Assistant</span>
+                                <button onClick={() => setOpen(false)} className="hover:rotate-90 transition-transform">✕</button>
+                            </div>
+                            <div ref={scrollRef} className="h-80 overflow-y-auto p-4 space-y-3 bg-slate-900/50">
+                                {msgs.map((m, i) => (
+                                    <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                                        <div className={`p-3 rounded-xl text-sm ${m.role === 'user' ? 'bg-teal-600 rounded-tr-none' : 'bg-slate-800 rounded-tl-none border border-white/5'}`}>
+                                            {m.text}
+                                        </div>
+                                    </div>
+                                ))}
+                                {loading && <div className="text-[10px] text-teal-400 animate-pulse italic">Thinking...</div>}
+                            </div>
+                            <div className="p-3 border-t border-white/10 flex gap-2">
+                                <input value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && send()} className="flex-1 bg-slate-800 p-2 rounded text-sm outline-none border border-white/5 focus:border-teal-500" placeholder="Ask a question..." />
+                                <button onClick={send} className="bg-teal-600 px-4 py-2 rounded font-bold text-xs hover:bg-teal-500 transition-colors">Send</button>
+                            </div>
+                        </div>
+                    ) : (
+                        <button onClick={() => setOpen(true)} className="bg-teal-600 p-4 rounded-full shadow-lg hover:scale-110 transition-transform flex items-center gap-2">
+                            <span className="hidden md:inline font-bold text-xs uppercase pl-2">Ask AI</span>
+                            <span className="text-xl">💬</span>
+                        </button>
+                    )}
+                </div>
+            );
+        };
+
+        const App = () => {
+            const [menu, setMenu] = useState(false);
+
+            return (
+                <div className="min-h-screen bg-slate-950">
+                    {/* NAVBAR */}
+                    <nav className="fixed top-0 w-full z-40 glass-card px-6 py-4 border-b border-white/5">
+                        <div className="max-w-6xl mx-auto flex justify-between items-center">
+                            <a href="#home" className="text-xl font-black gradient-text uppercase tracking-widest hover:opacity-80 transition-opacity">Jeeshma C</a>
+                            
+                            <div className="hidden md:flex gap-8 text-[11px] font-black uppercase tracking-widest text-slate-400">
+                                <a href="#home" className="hover:text-teal-400 transition-colors">Home</a>
+                                <a href="#about" className="hover:text-teal-400 transition-colors">About</a>
+                                <a href="#education" className="hover:text-teal-400 transition-colors">Education</a>
+                                <a href="#skills" className="hover:text-teal-400 transition-colors">Skills</a>
+                                <a href="#extra" className="hover:text-teal-400 transition-colors">Extra</a>
+                                <a href="#contact" className="text-teal-500 hover:text-teal-400 transition-colors">Contact</a>
+                            </div>
+
+                            <button className="md:hidden text-teal-400 p-2" onClick={() => setMenu(!menu)}>
+                                {menu ? '✕' : '☰'}
+                            </button>
+                        </div>
+                        {menu && (
+                            <div className="md:hidden absolute top-full left-0 w-full glass-card border-t border-white/10 flex flex-col items-center gap-6 py-8 text-xs font-black uppercase tracking-widest fade-in">
+                                <a href="#home" onClick={() => setMenu(false)}>Home</a>
+                                <a href="#about" onClick={() => setMenu(false)}>About</a>
+                                <a href="#education" onClick={() => setMenu(false)}>Education</a>
+                                <a href="#skills" onClick={() => setMenu(false)}>Skills</a>
+                                <a href="#extra" onClick={() => setMenu(false)}>Extra</a>
+                                <a href="#contact" onClick={() => setMenu(false)}>Contact</a>
+                            </div>
+                        )}
+                    </nav>
+
+                    {/* HERO */}
+                    <header id="home" className="pt-48 pb-32 px-6 text-center max-w-5xl mx-auto fade-in">
+                        <div className="inline-block px-4 py-1.5 rounded-full border border-teal-500/30 bg-teal-500/10 text-teal-400 text-[10px] font-black mb-8 tracking-widest uppercase">
+                            BSc Computer Science • NCC Cadet
+                        </div>
+                        <h1 className="text-7xl md:text-[10rem] font-black mb-10 tracking-tighter leading-none">
+                            <span className="gradient-text italic">Jeeshma</span> C
+                        </h1>
+                        <p className="text-slate-400 text-lg md:text-2xl leading-relaxed mb-12 max-w-3xl mx-auto font-light">
+                            {DATA.personal.objective}
+                        </p>
+                        <div className="flex flex-wrap justify-center gap-6">
+                            <a href="#contact" className="bg-teal-600 px-10 py-4 rounded-2xl font-black hover:bg-teal-500 transition-all shadow-xl shadow-teal-500/20 transform hover:scale-105">LET'S CONNECT</a>
+                            <a href="#about" className="glass-card px-10 py-4 rounded-2xl font-black hover:bg-white/5 transition-all">MY BIO</a>
+                        </div>
+                    </header>
+
+                    {/* ABOUT */}
+                    <section id="about" className="py-24 px-6 max-w-6xl mx-auto border-t border-white/5">
+                        <div className="grid md:grid-cols-2 gap-16 items-center">
+                            <div>
+                                <h2 className="text-4xl font-black mb-8 uppercase tracking-tighter">About <span className="text-teal-500">Me</span></h2>
+                                <p className="text-slate-400 text-lg leading-relaxed mb-8">
+                                    I am Jeeshma C, a dedicated Computer Science student at Nallamuthu Gounder Mahalingam College. 
+                                    With a strong foundation in Python and a disciplined mindset from the <strong>NCC</strong>, I aim to create real-time software solutions that make an impact.
+                                </p>
+                                <div className="grid grid-cols-2 gap-y-6 text-[10px] font-bold uppercase text-teal-400 tracking-widest">
+                                    <div><span className="text-slate-500 block mb-1">Born</span> {DATA.personal.dob}</div>
+                                    <div><span className="text-slate-500 block mb-1">Gender</span> {DATA.personal.gender}</div>
+                                    <div className="col-span-2"><span className="text-slate-500 block mb-1">Base</span> {DATA.personal.address}</div>
+                                </div>
+                            </div>
+                            <div className="glass-card p-8 rounded-[2rem] border-teal-500/20 shadow-2xl group hover:border-teal-500/40 transition-all">
+                                <h3 className="text-2xl font-black mb-6 uppercase tracking-widest text-white">Languages</h3>
+                                <div className="flex flex-wrap gap-3">
+                                    {DATA.personal.languages.map(l => (
+                                        <span key={l} className="px-4 py-2 bg-slate-900/50 rounded-xl text-[10px] font-black uppercase border border-white/5 tracking-widest text-slate-300">{l}</span>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    {/* EDUCATION */}
+                    <section id="education" className="py-24 px-6 max-w-6xl mx-auto border-t border-white/5">
+                        <h2 className="text-4xl font-black mb-12 uppercase tracking-tighter">Academic <span className="text-teal-500">Background</span></h2>
+                        <div className="space-y-6">
+                            {DATA.education.map(e => (
+                                <div key={e.id} className="glass-card p-8 rounded-3xl flex flex-col md:flex-row justify-between items-start md:items-center border-l-4 border-l-teal-500 hover:bg-slate-800/20 transition-all">
+                                    <div className="mb-4 md:mb-0">
+                                        <h3 className="text-xl font-black uppercase mb-1 tracking-tight">{e.degree}</h3>
+                                        <p className="text-teal-400 font-bold text-sm mb-1">{e.institution}</p>
+                                        <p className="text-slate-500 text-[10px] uppercase font-bold tracking-widest">{e.location}</p>
+                                    </div>
+                                    <div className="text-right">
+                                        <div className="text-2xl font-black text-white">{e.score}</div>
+                                        <div className="text-[10px] uppercase font-bold text-slate-500 tracking-[0.2em]">{e.status}</div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+
+                    {/* SKILLS */}
+                    <section id="skills" className="py-24 px-6 max-w-6xl mx-auto border-t border-white/5">
+                        <div className="text-center mb-16">
+                            <h2 className="text-4xl font-black uppercase tracking-tighter mb-4">Technical <span className="text-teal-500">Arsenal</span></h2>
+                            <p className="text-slate-500 uppercase text-[10px] font-bold tracking-[0.2em]">Programming Proficiency & Soft Skills</p>
+                        </div>
+                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+                            {DATA.skills.map((s, i) => (
+                                <div key={i} className="glass-card p-6 rounded-3xl group hover:border-teal-500 transition-all">
+                                    <div className="flex justify-between items-end mb-4">
+                                        <h3 className="font-black text-[11px] uppercase tracking-tighter group-hover:text-teal-400 transition-colors">{s.name}</h3>
+                                        <span className="text-[10px] font-mono text-slate-500">{s.level}%</span>
+                                    </div>
+                                    <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                                        <div className="bg-gradient-to-r from-teal-500 to-blue-500 h-full transition-all duration-1000" style={{ width: `${s.level}%` }}></div>
+                                    </div>
+                                    <p className="mt-3 text-[8px] uppercase font-bold text-slate-600 tracking-widest">{s.cat}</p>
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+
+                    {/* EXTRA */}
+                    <section id="extra" className="py-24 px-6 bg-slate-900/40 border-y border-white/5">
+                        <div className="max-w-6xl mx-auto grid lg:grid-cols-2 gap-16">
+                            <div>
+                                <h2 className="text-4xl font-black mb-12 uppercase tracking-tighter text-teal-500">Certifications</h2>
+                                <div className="space-y-4">
+                                    {DATA.certs.map((c, i) => (
+                                        <div key={i} className="glass-card p-6 rounded-3xl border-white/5 hover:translate-x-2 transition-transform cursor-default">
+                                            <div className="flex justify-between items-start mb-2">
+                                                <h4 className="font-black text-xs uppercase tracking-tight text-white">{c.title}</h4>
+                                                {c.score && <span className="bg-teal-500/10 text-teal-400 px-2 py-0.5 rounded text-[10px] font-black">{c.score}</span>}
+                                            </div>
+                                            <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest">{c.issuer} {c.date && <span className="opacity-40">/ {c.date}</span>}</p>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                            <div>
+                                <h2 className="text-4xl font-black mb-12 uppercase tracking-tighter text-teal-500">Extra-Curricular</h2>
+                                <div className="space-y-6">
+                                    {DATA.extra.map((ex, i) => (
+                                        <div key={i} className="glass-card p-8 rounded-3xl border-teal-500/20 group hover:bg-teal-600/5 transition-all">
+                                            <div className="flex items-center gap-4 mb-4">
+                                                <div className="w-10 h-10 bg-teal-600/20 rounded-2xl flex items-center justify-center text-teal-500 group-hover:scale-110 transition-transform">★</div>
+                                                <div>
+                                                    <h4 className="font-black text-teal-400 text-lg uppercase tracking-tighter leading-none">{ex.title}</h4>
+                                                    <p className="text-[10px] font-black text-slate-500 mt-1 uppercase tracking-widest">{ex.org}</p>
+                                                </div>
+                                            </div>
+                                            <p className="text-sm text-slate-400 leading-relaxed italic border-l-2 border-slate-800 pl-4">"{ex.desc}"</p>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    {/* CONTACT */}
+                    <section id="contact" className="py-32 px-6 text-center max-w-4xl mx-auto">
+                        <div className="glass-card p-12 md:p-20 rounded-[3rem] border-teal-500/20 relative overflow-hidden group">
+                            <h2 className="text-5xl md:text-7xl font-black mb-10 tracking-tighter uppercase">Let's <span className="text-teal-500">Connect</span></h2>
+                            <p className="text-slate-400 text-lg mb-12 max-w-xl mx-auto">Available for software solutions and analytical roles.</p>
+                            <div className="flex flex-col md:flex-row justify-center gap-8">
+                                <a href={`mailto:${DATA.personal.email}`} className="flex flex-col items-center gap-4 p-8 bg-slate-900/50 rounded-3xl border border-white/5 hover:border-teal-500/50 transition-all hover:scale-105 transform">
+                                    <span className="text-2xl">✉️</span>
+                                    <span className="font-mono text-sm font-bold tracking-tighter">{DATA.personal.email}</span>
+                                </a>
+                                <a href={`tel:${DATA.personal.phone}`} className="flex flex-col items-center gap-4 p-8 bg-slate-900/50 rounded-3xl border border-white/5 hover:border-teal-500/50 transition-all hover:scale-105 transform">
+                                    <span className="text-2xl">📞</span>
+                                    <span className="font-mono text-sm font-bold tracking-tighter">{DATA.personal.phone}</span>
+                                </a>
+                            </div>
+                            <p className="mt-16 text-[10px] font-black text-slate-600 uppercase tracking-[0.4em]">{DATA.personal.address}</p>
+                        </div>
+                    </section>
+
+                    {/* FOOTER */}
+                    <footer className="py-16 border-t border-white/5 text-center text-slate-500 text-[10px] uppercase font-black tracking-[0.5em]">
+                        © {new Date().getFullYear()} {DATA.personal.name} • PALAKKAD • PROFESSIONAL PORTFOLIO
+                    </footer>
+
+                    <Assistant />
+                </div>
+            );
+        };
+
+        const root = createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+<script type="module" src="/index.tsx"></script>
+</body>
+</html>
